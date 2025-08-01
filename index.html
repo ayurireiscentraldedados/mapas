@@ -21,20 +21,22 @@
   // **[AÇÃO NECESSÁRIA]** Insira seu Token de Acesso do Cesium Ion aqui.
   Cesium.Ion.defaultAccessToken = 'SEU_TOKEN_DE_ACESSO_AQUI';
 
-  // --- NOVO: Opções de otimização adicionadas ---
-  // Inicializa o visualizador Cesium desabilitando widgets desnecessários
+  // --- CORREÇÃO: Inicialização do Viewer e Terrain separados ---
   const viewer = new Cesium.Viewer('cesiumContainer', {
-    terrain: Cesium.Terrain.fromWorldTerrain(),
-    infoBox: true, // Mantém a caixa de informações
-    animation: false, // Desabilita o widget de animação
-    timeline: false, // Desabilita a linha do tempo
-    baseLayerPicker: false, // Desabilita o seletor de mapas base
-    geocoder: false, // Desabilita a busca de endereço
-    homeButton: false, // Desabilita o botão "home"
-    sceneModePicker: false, // Desabilita o seletor de modo 2D/3D
-    navigationHelpButton: false, // Desabilita o botão de ajuda
-    shouldAnimate: false, // Impede a animação automática do relógio
+    // A opção 'terrain' foi removida daqui para evitar o erro.
+    infoBox: true,
+    animation: false,
+    timeline: false,
+    baseLayerPicker: false,
+    geocoder: false,
+    homeButton: true, // Reabilitando o home button, é útil.
+    sceneModePicker: false,
+    navigationHelpButton: false,
+    shouldAnimate: false,
   });
+
+  // Atribuímos o terreno DEPOIS que o viewer foi criado. Esta é a forma mais segura.
+  viewer.terrainProvider = Cesium.createWorldTerrain();
 
   viewer.scene.globe.enableLighting = true;
 
