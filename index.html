@@ -8,15 +8,8 @@
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
   
   <style>
-    /* Estilos para garantir que o mapa ocupe a tela inteira */
     html, body, #cesiumContainer {
-      width: 100%; 
-      height: 100%; 
-      margin: 0; 
-      padding: 0; 
-      overflow: hidden;
-      font-family: sans-serif;
-      background-color: #000;
+      width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
     }
   </style>
 </head>
@@ -25,164 +18,67 @@
 <div id="cesiumContainer"></div>
 
 <script>
-  // ==============================================================================
-  // PARTE 1: CONFIGURAÇÃO INICIAL E DADOS
-  // ==============================================================================
-
   // **[AÇÃO NECESSÁRIA]** Insira seu Token de Acesso do Cesium Ion aqui.
-  Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlNjk3NjRmYS05ODk0LTRhNGUtYWYzMS03Mzk2NzU5MGZmNzAiLCJpZCI6MzI3OTEwLCJpYXQiOjE3NTQwODEwMzd9.iUVcsORBpAlKcAGnkoFe9a8jrI4jaA_6pVrQ618qZb4';
+  Cesium.Ion.defaultAccessToken = 'SEU_TOKEN_DE_ACESSO_AQUI';
 
-  // Inicializa o visualizador Cesium na div 'cesiumContainer'
+  // --- NOVO: Opções de otimização adicionadas ---
+  // Inicializa o visualizador Cesium desabilitando widgets desnecessários
   const viewer = new Cesium.Viewer('cesiumContainer', {
-    terrain: Cesium.Terrain.fromWorldTerrain(), // Adiciona o relevo 3D padrão do mundo
-    infoBox: true, // Habilita a caixa de informações ao clicar em uma entidade
+    terrain: Cesium.Terrain.fromWorldTerrain(),
+    infoBox: true, // Mantém a caixa de informações
+    animation: false, // Desabilita o widget de animação
+    timeline: false, // Desabilita a linha do tempo
+    baseLayerPicker: false, // Desabilita o seletor de mapas base
+    geocoder: false, // Desabilita a busca de endereço
+    homeButton: false, // Desabilita o botão "home"
+    sceneModePicker: false, // Desabilita o seletor de modo 2D/3D
+    navigationHelpButton: false, // Desabilita o botão de ajuda
+    shouldAnimate: false, // Impede a animação automática do relógio
   });
 
-  // Melhora a iluminação do globo para um visual mais realista
   viewer.scene.globe.enableLighting = true;
 
-  // Seus dados de países, já com coordenadas e valores processados
   const countryData = [
-    { name: 'Afeganistão', coords: [67.71, 33.94], value: 15 },
-    { name: 'Argélia', coords: [1.66, 28.03], value: 30 },
-    { name: 'Angola', coords: [17.87, -11.20], value: 15 },
-    { name: 'Bangladesh', coords: [90.36, 23.81], value: 20 },
-    { name: 'Bolívia', coords: [-63.59, -16.29], value: 15 },
-    { name: 'Bósnia e Herzegovina', coords: [17.68, 43.92], value: 30 },
-    { name: 'Botsuana', coords: [24.68, -22.33], value: 15 },
-    { name: 'Brasil', coords: [-51.93, -14.24], value: 50 },
-    { name: 'Brunei', coords: [114.73, 4.54], value: 25 },
-    { name: 'Camboja', coords: [104.99, 12.57], value: 19 },
-    { name: 'Camarões', coords: [12.35, 7.37], value: 15 },
-    { name: 'Chade', coords: [18.73, 15.45], value: 15 },
-    { name: 'Costa Rica', coords: [-83.75, 9.75], value: 15 },
-    { name: 'Costa do Marfim', coords: [-5.55, 7.54], value: 15 },
-    { name: 'Rep. Dem. do Congo', coords: [21.76, -4.04], value: 15 },
-    { name: 'Equador', coords: [-78.18, -1.83], value: 15 },
-    { name: 'Guiné Equatorial', coords: [10.27, 1.65], value: 15 },
-    { name: 'Ilhas Malvinas (Falkland)', coords: [-59.52, -51.79], value: 10 },
-    { name: 'Fiji', coords: [179.41, -17.71], value: 15 },
-    { name: 'Gana', coords: [-1.02, 7.95], value: 15 },
-    { name: 'Guiana', coords: [-58.93, 4.86], value: 15 },
-    { name: 'Islândia', coords: [-19.02, 64.96], value: 15 },
-    { name: 'Índia', coords: [78.96, 20.59], value: 25 },
-    { name: 'Indonésia', coords: [113.92, -0.79], value: 19 },
-    { name: 'Iraque', coords: [43.68, 33.22], value: 35 },
-    { name: 'Israel', coords: [34.85, 31.05], value: 15 },
-    { name: 'Japão', coords: [138.25, 36.20], value: 15 },
-    { name: 'Jordânia', coords: [36.24, 30.59], value: 15 },
-    { name: 'Cazaquistão', coords: [66.92, 48.02], value: 25 },
-    { name: 'Laos', coords: [102.49, 19.86], value: 40 },
-    { name: 'Lesoto', coords: [28.23, -29.61], value: 15 },
-    { name: 'Líbia', coords: [17.23, 26.34], value: 30 },
-    { name: 'Liechtenstein', coords: [9.55, 47.16], value: 15 },
-    { name: 'Madagascar', coords: [46.87, -18.77], value: 15 },
-    { name: 'Maláui', coords: [34.30, -13.25], value: 15 },
-    { name: 'Malásia', coords: [101.98, 4.21], value: 19 },
-    { name: 'Maurício', coords: [57.55, -20.35], value: 15 },
-    { name: 'Moldávia', coords: [28.37, 47.41], value: 25 },
-    { name: 'Moçambique', coords: [35.53, -18.67], value: 15 },
-    { name: 'Mianmar (Birmânia)', coords: [95.96, 21.91], value: 40 },
-    { name: 'Namíbia', coords: [18.49, -22.96], value: 15 },
-    { name: 'Nauru', coords: [166.93, -0.52], value: 15 },
-    { name: 'Nova Zelândia', coords: [174.89, -40.90], value: 15 },
-    { name: 'Nicarágua', coords: [-85.21, 12.87], value: 18 },
-    { name: 'Nigéria', coords: [8.68, 9.08], value: 15 },
-    { name: 'Macedônia do Norte', coords: [21.75, 41.61], value: 15 },
-    { name: 'Noruega', coords: [8.47, 60.47], value: 15 },
-    { name: 'Paquistão', coords: [69.35, 30.38], value: 19 },
-    { name: 'Papua-Nova Guiné', coords: [143.95, -6.31], value: 15 },
-    { name: 'Filipinas', coords: [121.77, 12.88], value: 19 },
-    { name: 'Sérvia', coords: [20.45, 44.78], value: 35 },
-    { name: 'África do Sul', coords: [22.94, -30.56], value: 30 },
-    { name: 'Coreia do Sul', coords: [127.77, 35.91], value: 15 },
-    { name: 'Sri Lanka', coords: [80.77, 7.87], value: 20 },
-    { name: 'Suíça', coords: [8.23, 46.82], value: 39 },
-    { name: 'Síria', coords: [38.99, 34.80], value: 41 },
-    { name: 'Taiwan', coords: [120.96, 23.70], value: 20 },
-    { name: 'Tailândia', coords: [100.99, 15.87], value: 19 },
-    { name: 'Trinidad e Tobago', coords: [-61.22, 10.69], value: 15 },
-    { name: 'Tunísia', coords: [9.54, 33.89], value: 25 },
-    { name: 'Turquia', coords: [35.24, 38.96], value: 15 },
-    { name: 'Uganda', coords: [32.29, 1.37], value: 15 },
-    { name: 'Reino Unido', coords: [-3.44, 55.38], value: 10 },
-    { name: 'Vanuatu', coords: [166.96, -15.38], value: 15 },
-    { name: 'Venezuela', coords: [-66.59, 6.42], value: 15 },
-    { name: 'Vietnã', coords: [108.28, 14.06], value: 20 },
-    { name: 'Zâmbia', coords: [27.85, -13.13], value: 15 },
-    { name: 'Zimbábue', coords: [29.15, -19.02], value: 15 }
+    { name: 'Afeganistão', coords: [67.71, 33.94], value: 15 }, { name: 'Argélia', coords: [1.66, 28.03], value: 30 }, { name: 'Angola', coords: [17.87, -11.20], value: 15 }, { name: 'Bangladesh', coords: [90.36, 23.81], value: 20 }, { name: 'Bolívia', coords: [-63.59, -16.29], value: 15 }, { name: 'Bósnia e Herzegovina', coords: [17.68, 43.92], value: 30 }, { name: 'Botsuana', coords: [24.68, -22.33], value: 15 }, { name: 'Brasil', coords: [-51.93, -14.24], value: 50 }, { name: 'Brunei', coords: [114.73, 4.54], value: 25 }, { name: 'Camboja', coords: [104.99, 12.57], value: 19 }, { name: 'Camarões', coords: [12.35, 7.37], value: 15 }, { name: 'Chade', coords: [18.73, 15.45], value: 15 }, { name: 'Costa Rica', coords: [-83.75, 9.75], value: 15 }, { name: 'Costa do Marfim', coords: [-5.55, 7.54], value: 15 }, { name: 'Rep. Dem. do Congo', coords: [21.76, -4.04], value: 15 }, { name: 'Equador', coords: [-78.18, -1.83], value: 15 }, { name: 'Guiné Equatorial', coords: [10.27, 1.65], value: 15 }, { name: 'Ilhas Malvinas (Falkland)', coords: [-59.52, -51.79], value: 10 }, { name: 'Fiji', coords: [179.41, -17.71], value: 15 }, { name: 'Gana', coords: [-1.02, 7.95], value: 15 }, { name: 'Guiana', coords: [-58.93, 4.86], value: 15 }, { name: 'Islândia', coords: [-19.02, 64.96], value: 15 }, { name: 'Índia', coords: [78.96, 20.59], value: 25 }, { name: 'Indonésia', coords: [113.92, -0.79], value: 19 }, { name: 'Iraque', coords: [43.68, 33.22], value: 35 }, { name: 'Israel', coords: [34.85, 31.05], value: 15 }, { name: 'Japão', coords: [138.25, 36.20], value: 15 }, { name: 'Jordânia', coords: [36.24, 30.59], value: 15 }, { name: 'Cazaquistão', coords: [66.92, 48.02], value: 25 }, { name: 'Laos', coords: [102.49, 19.86], value: 40 }, { name: 'Lesoto', coords: [28.23, -29.61], value: 15 }, { name: 'Líbia', coords: [17.23, 26.34], value: 30 }, { name: 'Liechtenstein', coords: [9.55, 47.16], value: 15 }, { name: 'Madagascar', coords: [46.87, -18.77], value: 15 }, { name: 'Maláui', coords: [34.30, -13.25], value: 15 }, { name: 'Malásia', coords: [101.98, 4.21], value: 19 }, { name: 'Maurício', coords: [57.55, -20.35], value: 15 }, { name: 'Moldávia', coords: [28.37, 47.41], value: 25 }, { name: 'Moçambique', coords: [35.53, -18.67], value: 15 }, { name: 'Mianmar (Birmânia)', coords: [95.96, 21.91], value: 40 }, { name: 'Namíbia', coords: [18.49, -22.96], value: 15 }, { name: 'Nauru', coords: [166.93, -0.52], value: 15 }, { name: 'Nova Zelândia', coords: [174.89, -40.90], value: 15 }, { name: 'Nicarágua', coords: [-85.21, 12.87], value: 18 }, { name: 'Nigéria', coords: [8.68, 9.08], value: 15 }, { name: 'Macedônia do Norte', coords: [21.75, 41.61], value: 15 }, { name: 'Noruega', coords: [8.47, 60.47], value: 15 }, { name: 'Paquistão', coords: [69.35, 30.38], value: 19 }, { name: 'Papua-Nova Guiné', coords: [143.95, -6.31], value: 15 }, { name: 'Filipinas', coords: [121.77, 12.88], value: 19 }, { name: 'Sérvia', coords: [20.45, 44.78], value: 35 }, { name: 'África do Sul', coords: [22.94, -30.56], value: 30 }, { name: 'Coreia do Sul', coords: [127.77, 35.91], value: 15 }, { name: 'Sri Lanka', coords: [80.77, 7.87], value: 20 }, { name: 'Suíça', coords: [8.23, 46.82], value: 39 }, { name: 'Síria', coords: [38.99, 34.80], value: 41 }, { name: 'Taiwan', coords: [120.96, 23.70], value: 20 }, { name: 'Tailândia', coords: [100.99, 15.87], value: 19 }, { name: 'Trinidad e Tobago', coords: [-61.22, 10.69], value: 15 }, { name: 'Tunísia', coords: [9.54, 33.89], value: 25 }, { name: 'Turquia', coords: [35.24, 38.96], value: 15 }, { name: 'Uganda', coords: [32.29, 1.37], value: 15 }, { name: 'Reino Unido', coords: [-3.44, 55.38], value: 10 }, { name: 'Vanuatu', coords: [166.96, -15.38], value: 15 }, { name: 'Venezuela', coords: [-66.59, 6.42], value: 15 }, { name: 'Vietnã', coords: [108.28, 14.06], value: 20 }, { name: 'Zâmbia', coords: [27.85, -13.13], value: 15 }, { name: 'Zimbábue', coords: [29.15, -19.02], value: 15 }
   ];
-
-  // ==============================================================================
-  // PARTE 2: LÓGICA PRINCIPAL DA APLICAÇÃO
-  // ==============================================================================
-
-  // Usamos uma função 'async' para poder usar 'await' e carregar os dados em ordem.
+  
   async function main() {
-    
-    // --- Bloco 1: Carregar seu Asset 3D personalizado ---
     try {
-      console.log("Iniciando carregamento do asset 3D personalizado...");
-      
-      // O Asset ID 2275207 está agora inserido diretamente no código.
       const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207);
-      
       viewer.scene.primitives.add(tileset);
-      
-      // Move a câmera para focar no asset que acabamos de carregar.
       await viewer.zoomTo(tileset);
-      console.log("Asset 3D carregado e focado.");
-
     } catch (error) {
-      console.error(`Erro ao carregar o asset 3D: ${error}. Verifique o Asset ID e o Token.`);
+      console.error(`Erro ao carregar o asset 3D: ${error}`);
     }
 
-    // --- Bloco 2: Adicionar as barras de dados dos países ---
-    console.log("Adicionando as entidades de dados dos países...");
+    const heightScale = 15000;
 
-    const heightScale = 15000; // Multiplicador para a altura das barras
-
-    // Função para definir a cor da barra com base no valor da alíquota
     function getColorForValue(value) {
-      if (value < 15) return Cesium.Color.fromCssColorString('#4CAF50').withAlpha(0.8); // Verde
-      if (value < 25) return Cesium.Color.fromCssColorString('#FFEB3B').withAlpha(0.8); // Amarelo
-      if (value < 35) return Cesium.Color.fromCssColorString('#FF9800').withAlpha(0.8); // Laranja
-      if (value < 45) return Cesium.Color.fromCssColorString('#F44336').withAlpha(0.8); // Vermelho
-      return Cesium.Color.fromCssColorString('#B71C1C').withAlpha(0.8); // Vermelho Escuro
+      if (value < 15) return Cesium.Color.fromCssColorString('#4CAF50').withAlpha(0.8);
+      if (value < 25) return Cesium.Color.fromCssColorString('#FFEB3B').withAlpha(0.8);
+      if (value < 35) return Cesium.Color.fromCssColorString('#FF9800').withAlpha(0.8);
+      if (value < 45) return Cesium.Color.fromCssColorString('#F44336').withAlpha(0.8);
+      return Cesium.Color.fromCssColorString('#B71C1C').withAlpha(0.8);
     }
 
-    // Loop que cria uma barra 3D para cada país na lista de dados
     countryData.forEach(country => {
       viewer.entities.add({
         name: country.name,
         position: Cesium.Cartesian3.fromDegrees(country.coords[0], country.coords[1]),
-        
-        // Define a aparência da barra 3D (um cilindro)
         cylinder: {
-          length: country.value * heightScale, // Altura baseada no valor
+          length: country.value * heightScale,
           topRadius: 40000,
           bottomRadius: 40000,
           material: getColorForValue(country.value),
           outline: true,
           outlineColor: Cesium.Color.BLACK,
         },
-        
-        // Conteúdo HTML que aparece na caixa de informações ao clicar
-        description: `
-          <div style="padding:10px; font-family: sans-serif; color: #333;">
-            <h2 style="margin-top:0;">${country.name}</h2>
-            <p><strong>Alíquota Aplicada: ${country.value}%</strong></p>
-          </div>
-        `
+        description: `<h2>${country.name}</h2><p><strong>Alíquota Aplicada: ${country.value}%</strong></p>`
       });
     });
-    
-    console.log("Todas as entidades de dados foram adicionadas.");
   }
 
-  // Executa a função principal para iniciar a aplicação.
   main();
-
 </script>
 </body>
 </html>
